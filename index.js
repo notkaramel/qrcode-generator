@@ -19,7 +19,40 @@ const marginInput = document.getElementById("margin");
 
 const STORAGE_KEY = "qrcode-gen-settings";
 const PRESETS_KEY = "qrcode-gen-presets";
+const THEME_KEY = "qrcode-gen-theme";
 const MAX_PRESETS = 3;
+
+const themeToggle = document.getElementById("themeToggle");
+const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+function getTheme() {
+  return document.documentElement.getAttribute("data-theme") || "light";
+}
+
+function setTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch (e) {
+    /* ignore */
+  }
+  if (themeColorMeta) {
+    themeColorMeta.content = theme === "dark" ? "#1a2630" : "#8ecae6";
+  }
+  if (themeToggle) {
+    themeToggle.setAttribute(
+      "aria-label",
+      theme === "dark" ? "Switch to light mode" : "Switch to dark mode",
+    );
+  }
+}
+
+if (themeToggle) {
+  setTheme(getTheme());
+  themeToggle.addEventListener("click", () => {
+    setTheme(getTheme() === "dark" ? "light" : "dark");
+  });
+}
 
 let debounceTimer = null;
 let logoDataUrl = null;
@@ -121,10 +154,10 @@ const qrCode = new QRCodeStyling({
   height: 600,
   type: "canvas",
   data: "",
-  dotsOptions: { color: "#0c4a6e", type: "rounded" },
+  dotsOptions: { color: "#3d5a6c", type: "rounded" },
   backgroundOptions: { color: "#ffffff" },
-  cornersSquareOptions: { type: "square", color: "#0c4a6e" },
-  cornersDotOptions: { type: "square", color: "#0c4a6e" },
+  cornersSquareOptions: { type: "square", color: "#3d5a6c" },
+  cornersDotOptions: { type: "square", color: "#3d5a6c" },
   imageOptions: { crossOrigin: "anonymous", margin: 10 },
   qrOptions: { errorCorrectionLevel: "H" },
 });
