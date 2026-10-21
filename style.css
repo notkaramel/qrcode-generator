@@ -22,7 +22,7 @@
   --spinner-track: #d0e8f4;
   --spinner-head: #6bb3d9;
   --spinner-overlay: rgba(238, 246, 251, 0.85);
-  --radius: 0;
+  --radius: 3px;
   --font: "Figtree", "Segoe UI", sans-serif;
   color-scheme: light;
 }
@@ -84,12 +84,23 @@ body {
   position: relative;
 }
 
-.header h1 {
+.header h1,
+.brand-title {
   margin: 0;
-  font-size: clamp(1.5rem, 4vw, 1.85rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--text);
+  font-family: "Silkscreen", "Segoe Print", cursive;
+  font-size: clamp(2.1rem, 7vw, 3rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: #2a8ac6;
+  text-transform: lowercase;
+  transform: rotate(-0.5deg);
+  text-shadow: 4px 4px 0 color-mix(in srgb, #2a7a96 28%, transparent);
+}
+
+[data-theme="dark"] .brand-title {
+  color: #7ec8e8;
+  text-shadow: -4px -4px -0 color-mix(in srgb, #7ec8e8 32%, transparent);
 }
 
 .theme-toggle {
@@ -103,9 +114,9 @@ body {
   width: 40px;
   height: 40px;
   padding: 0;
-  color: #7a1848;
+  color: #8b7ad9;
   background: transparent;
-  border: 1px solid #7a1848;
+  border: 1px solid #8b7ad9;
   border-radius: var(--radius);
   cursor: pointer;
   transition:
@@ -115,45 +126,46 @@ body {
 }
 
 .theme-toggle:hover {
-  color: #b84a7a;
-  border-color: #b84a7a;
+  color: #a99aeb;
+  border-color: #a99aeb;
   background: var(--bg-soft);
 }
 
-.theme-toggle svg {
+.theme-toggle .icon-sprout,
+.theme-toggle .icon-moon-star {
   width: 20px;
   height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.25;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  background: currentColor;
 }
 
-.theme-toggle .icon-moon {
-  fill: currentColor;
-}
-
-.theme-toggle .icon-sun {
+.theme-toggle .icon-sprout {
   display: none;
+  -webkit-mask: url("/lucide-sprout.svg") center / contain no-repeat;
+  mask: url("/lucide-sprout.svg") center / contain no-repeat;
+}
+
+.theme-toggle .icon-moon-star {
+  display: block;
+  -webkit-mask: url("/lucide-moon-star.svg") center / contain no-repeat;
+  mask: url("/lucide-moon-star.svg") center / contain no-repeat;
 }
 
 [data-theme="dark"] .theme-toggle {
-  color: #c9a227;
-  border-color: #c9a227;
+  color: #5eb8a8;
+  border-color: #5eb8a8;
 }
 
 [data-theme="dark"] .theme-toggle:hover {
-  color: #e8c84a;
-  border-color: #e8c84a;
+  color: #7ed4c6;
+  border-color: #7ed4c6;
 }
 
-[data-theme="dark"] .theme-toggle .icon-moon {
-  display: none;
-}
-
-[data-theme="dark"] .theme-toggle .icon-sun {
+[data-theme="dark"] .theme-toggle .icon-sprout {
   display: block;
+}
+
+[data-theme="dark"] .theme-toggle .icon-moon-star {
+  display: none;
 }
 
 .main {
@@ -316,12 +328,12 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 
 input[type="color"]::-webkit-color-swatch {
   border: none;
-  border-radius: 0;
+  border-radius: calc(var(--radius) - 1px);
 }
 
 input[type="color"]::-moz-color-swatch {
   border: none;
-  border-radius: 0;
+  border-radius: calc(var(--radius) - 1px);
 }
 
 input[type="color"]:disabled {
