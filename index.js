@@ -10,8 +10,12 @@ const clearLogoBtn = document.getElementById("clearLogo");
 const canvasEl = document.getElementById("canvas");
 const spinnerEl = document.getElementById("spinner");
 const downloadBtn = document.getElementById("downloadQr");
+const randomizeBtn = document.getElementById("randomizeQr");
 const dotColor = document.getElementById("dotColor");
 const bgColor = document.getElementById("bgColor");
+const bgTransparent = document.getElementById("bgTransparent");
+const bgColorWrap = document.getElementById("bgColorWrap");
+const canvasWrap = document.getElementById("canvasWrap");
 const dotType = document.getElementById("dotType");
 const cornerType = document.getElementById("cornerType");
 const sizeInput = document.getElementById("size");
@@ -21,6 +25,7 @@ const STORAGE_KEY = "qrcode-gen-settings";
 const PRESETS_KEY = "qrcode-gen-presets";
 const THEME_KEY = "qrcode-gen-theme";
 const MAX_PRESETS = 3;
+const presetsEl = document.getElementById("presets");
 
 const themeToggle = document.getElementById("themeToggle");
 const themeColorMeta = document.querySelector('meta[name="theme-color"]');
@@ -58,11 +63,31 @@ let debounceTimer = null;
 let logoDataUrl = null;
 let logoFileName = null;
 
+function isBgTransparent() {
+  return bgTransparent.getAttribute("aria-pressed") === "true";
+}
+
+function setBgTransparent(on) {
+  bgTransparent.setAttribute("aria-pressed", on ? "true" : "false");
+  bgTransparent.classList.toggle("is-active", on);
+  syncBgTransparentUi();
+}
+
+function syncBgTransparentUi() {
+  const on = isBgTransparent();
+  const bgRow = bgColorWrap.parentElement;
+  bgColor.disabled = on;
+  bgRow?.classList.toggle("is-transparent", on);
+  bgTransparent.classList.toggle("is-expanded", on);
+  canvasWrap.classList.toggle("is-transparent", on);
+}
+
 function getCurrentState() {
   return {
     data: dataInput.value,
     dotColor: dotColor.value,
     bgColor: bgColor.value,
+    bgTransparent: isBgTransparent(),
     dotType: dotType.value,
     cornerType: cornerType.value,
     size: sizeInput.value,
@@ -75,7 +100,12 @@ function getCurrentState() {
 function applyState(state) {
   if (state.data != null) dataInput.value = state.data;
   if (state.dotColor) dotColor.value = state.dotColor;
-  if (state.bgColor) bgColor.value = state.bgColor;
+  if (state.bgColor && state.bgColor !== "transparent") {
+    bgColor.value = state.bgColor;
+  }
+  setBgTransparent(
+    Boolean(state.bgTransparent || state.bgColor === "transparent"),
+  );
   if (state.dotType) dotType.value = state.dotType;
   if (state.cornerType) cornerType.value = state.cornerType;
   if (state.size != null) sizeInput.value = state.size;
@@ -113,8 +143,66 @@ function setPresets(arr) {
   updatePresetSlots();
 }
 
+function createPresetSlot(index) {
+  const slot = document.createElement("div");
+  slot.className = "preset-slot";
+  slot.dataset.slot = String(index);
+  slot.innerHTML = `
+    <input
+      type="text"
+      class="preset-name"
+      id="presetName${index}"
+      placeholder="Name…"
+      aria-label="Preset ${index + 1} name"
+    />
+    <div class="preset-actions">
+      <button type="button" class="preset-load" id="presetLoad${index}" disabled>
+        Load
+      </button>
+      <button type="button" class="preset-save" id="presetSave${index}">
+        Save
+      </button>
+    </div>
+  `;
+
+  slot.querySelector(`#presetSave${index}`).addEventListener("click", () => {
+    const presets = getPresets();
+    const nameInput = document.getElementById(`presetName${index}`);
+    const name = nameInput.value.trim() || `Preset ${index + 1}`;
+    presets[index] = { name, ...getCurrentState() };
+    setPresets(presets);
+    buttonFeedback(
+      document.getElementById(`presetSave${index}`),
+      false,
+      index,
+      "Saved!",
+    );
+  });
+
+  slot.querySelector(`#presetLoad${index}`).addEventListener("click", () => {
+    const presets = getPresets();
+    if (presets[index]) {
+      applyState(presets[index]);
+      render();
+      buttonFeedback(
+        document.getElementById(`presetLoad${index}`),
+        true,
+        index,
+        "Loaded!",
+      );
+    }
+  });
+
+  return slot;
+}
+
 function updatePresetSlots() {
   const presets = getPresets();
+
+  while (presetsEl.children.length < MAX_PRESETS) {
+    presetsEl.appendChild(createPresetSlot(presetsEl.children.length));
+  }
+
   for (let i = 0; i < MAX_PRESETS; i++) {
     const nameInput = document.getElementById(`presetName${i}`);
     const loadBtn = document.getElementById(`presetLoad${i}`);
@@ -122,7 +210,6 @@ function updatePresetSlots() {
       nameInput.value = presets[i].name ?? `Preset ${i + 1}`;
       loadBtn.disabled = false;
     } else {
-      nameInput.value = "";
       nameInput.placeholder = "Name…";
       loadBtn.disabled = true;
     }
@@ -184,7 +271,9 @@ function getOptions() {
     image: logoDataUrl || undefined,
     shape: "square",
     dotsOptions: { type: dotType.value, color: dotColor.value },
-    backgroundOptions: { color: bgColor.value },
+    backgroundOptions: {
+      color: isBgTransparent() ? "transparent" : bgColor.value,
+    },
     cornersSquareOptions: cornerOpts,
     cornersDotOptions: cornerOpts,
     imageOptions: { crossOrigin: "anonymous", margin: 12 },
@@ -262,6 +351,50 @@ dataInput.addEventListener("paste", onDataInput);
   },
 );
 
+bgTransparent.addEventListener("click", () => {
+  setBgTransparent(!isBgTransparent());
+  render();
+});
+
+function randomHex() {
+  return `#${Math.floor(Math.random() * 0xffffff)
+    .toString(16)
+    .padStart(6, "0")}`;
+}
+
+function luminance(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 0xff;
+  const g = (n >> 8) & 0xff;
+  const b = n & 0xff;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+}
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randomizeStyle() {
+  const dotTypes = [...dotType.options].map((o) => o.value);
+  const cornerTypes = [...cornerType.options].map((o) => o.value);
+  let dots = randomHex();
+  let bg = randomHex();
+  const transparent = Math.random() < 0.12;
+
+  if (!transparent && Math.abs(luminance(dots) - luminance(bg)) < 0.35) {
+    bg = luminance(dots) > 0.5 ? "#1a2630" : "#ffffff";
+  }
+
+  setBgTransparent(transparent);
+  dotColor.value = dots;
+  bgColor.value = bg;
+  dotType.value = pick(dotTypes);
+  cornerType.value = pick(cornerTypes);
+  render();
+}
+
+randomizeBtn.addEventListener("click", randomizeStyle);
+
 downloadBtn.addEventListener("click", () => {
   qrCode.download({ name: "qrcode", extension: "png" });
 });
@@ -278,35 +411,6 @@ function buttonFeedback(btn, isLoad, slotIndex, feedbackText) {
     btn.classList.remove("preset-btn-feedback");
     btn.disabled = isLoad ? !getPresets()[slotIndex] : false;
   }, FEEDBACK_MS);
-}
-
-for (let i = 0; i < MAX_PRESETS; i++) {
-  document.getElementById(`presetSave${i}`).addEventListener("click", () => {
-    const presets = getPresets();
-    const nameInput = document.getElementById(`presetName${i}`);
-    const name = nameInput.value.trim() || `Preset ${i + 1}`;
-    presets[i] = { name, ...getCurrentState() };
-    setPresets(presets);
-    buttonFeedback(
-      document.getElementById(`presetSave${i}`),
-      false,
-      i,
-      "Saved!",
-    );
-  });
-  document.getElementById(`presetLoad${i}`).addEventListener("click", () => {
-    const presets = getPresets();
-    if (presets[i]) {
-      applyState(presets[i]);
-      render();
-      buttonFeedback(
-        document.getElementById(`presetLoad${i}`),
-        true,
-        i,
-        "Loaded!",
-      );
-    }
-  });
 }
 
 loadSettings();

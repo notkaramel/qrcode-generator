@@ -88,157 +88,125 @@
 
       <main class="main">
         <div class="controls-column">
-          <section class="panel controls">
+          <section class="panel section-content">
+            <div class="section-heading-row">
+              <h2 class="section-heading">Content</h2>
+              <span class="section-rule" aria-hidden="true"></span>
+            </div>
             <div class="field">
-              <label for="data">Content</label>
+              <label for="data" class="sr-only">Content</label>
               <textarea
                 id="data"
                 rows="3"
                 placeholder="Enter URL or text…"
               ></textarea>
             </div>
-
-            <fieldset class="params">
-              <legend>Options</legend>
-              <div class="options-grid">
-                <div class="field field-logo">
-                  <label>Logo</label>
-                  <div class="upload-area" id="uploadArea">
-                    <input type="file" id="logo" accept="image/*" hidden />
-                    <span class="upload-text" id="uploadText"
-                      >Drop image or click to upload</span
-                    >
-                    <button
-                      type="button"
-                      class="clear-logo"
-                      id="clearLogo"
-                      hidden
-                    >
-                      Remove logo
-                    </button>
-                  </div>
-                </div>
-                <div class="field">
-                  <label for="dotColor">Dots color</label>
-                  <input type="color" id="dotColor" value="#3d5a6c" />
-                </div>
-                <div class="field">
-                  <label for="bgColor">Background</label>
-                  <input type="color" id="bgColor" value="#ffffff" />
-                </div>
-                <div class="field">
-                  <label for="dotType">Dot style</label>
-                  <select id="dotType">
-                    <option value="square">Square</option>
-                    <option value="rounded">Rounded</option>
-                    <option value="dots">Dots</option>
-                    <option value="classy">Classy</option>
-                    <option value="classy-rounded">Classy rounded</option>
-                    <option value="extra-rounded">Extra rounded</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="cornerType">Corner dots style</label>
-                  <select id="cornerType">
-                    <option value="square">Square</option>
-                    <option value="dot">Dot</option>
-                    <option value="extra-rounded">Extra rounded</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="size">Size (px)</label>
-                  <input
-                    type="number"
-                    id="size"
-                    min="100"
-                    max="2000"
-                    value="600"
-                  />
-                </div>
-                <div class="field">
-                  <label for="margin">Margin</label>
-                  <input
-                    type="number"
-                    id="margin"
-                    min="0"
-                    max="50"
-                    value="10"
-                  />
-                </div>
-              </div>
-            </fieldset>
           </section>
 
-          <section class="panel presets-panel">
-            <h2 class="presets-title">Presets</h2>
-            <div class="presets" id="presets">
-              <div class="preset-slot" data-slot="0">
-                <input
-                  type="text"
-                  class="preset-name"
-                  id="presetName0"
-                  placeholder="Name…"
-                  aria-label="Preset 1 name"
-                />
-                <div class="preset-actions">
+          <section class="panel section-style">
+            <div class="section-heading-row">
+              <h2 class="section-heading">Style options</h2>
+              <span class="section-rule" aria-hidden="true"></span>
+              <button
+                type="button"
+                class="randomize-qr"
+                id="randomizeQr"
+                aria-label="Randomize style"
+                title="Randomize style"
+              >
+                <span class="randomize-icon" aria-hidden="true"></span>
+                <span>Random style</span>
+              </button>
+            </div>
+            <div class="options-grid">
+              <div class="field field-logo">
+                <label>Logo</label>
+                <div class="upload-area" id="uploadArea">
+                  <input type="file" id="logo" accept="image/*" hidden />
+                  <span class="upload-text" id="uploadText"
+                    >Drop image or click to upload</span
+                  >
                   <button
                     type="button"
-                    class="preset-load"
-                    id="presetLoad0"
-                    disabled
+                    class="clear-logo"
+                    id="clearLogo"
+                    hidden
                   >
-                    Load
-                  </button>
-                  <button type="button" class="preset-save" id="presetSave0">
-                    Save
+                    Remove logo
                   </button>
                 </div>
               </div>
-              <div class="preset-slot" data-slot="1">
-                <input
-                  type="text"
-                  class="preset-name"
-                  id="presetName1"
-                  placeholder="Name…"
-                  aria-label="Preset 2 name"
-                />
-                <div class="preset-actions">
+              <div class="field">
+                <label for="dotColor">Dots color</label>
+                <input type="color" id="dotColor" value="#3d5a6c" />
+              </div>
+              <div class="field">
+                <label for="bgColor">Background</label>
+                <div class="bg-row">
+                  <div class="bg-color-wrap" id="bgColorWrap">
+                    <input type="color" id="bgColor" value="#ffffff" />
+                  </div>
                   <button
                     type="button"
-                    class="preset-load"
-                    id="presetLoad1"
-                    disabled
+                    class="toggle-btn"
+                    id="bgTransparent"
+                    aria-pressed="false"
+                    aria-label="Transparent background"
+                    title="Transparent"
                   >
-                    Load
-                  </button>
-                  <button type="button" class="preset-save" id="presetSave1">
-                    Save
+                    <span class="toggle-icon" aria-hidden="true"></span>
+                    <span class="toggle-label">Transparent</span>
                   </button>
                 </div>
               </div>
-              <div class="preset-slot" data-slot="2">
+              <div class="field">
+                <label for="dotType">Dot style</label>
+                <select id="dotType">
+                  <option value="square">Square</option>
+                  <option value="rounded">Rounded</option>
+                  <option value="dots">Dots</option>
+                  <option value="classy">Classy</option>
+                  <option value="classy-rounded">Classy rounded</option>
+                  <option value="extra-rounded">Extra rounded</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="cornerType">Corner dot style</label>
+                <select id="cornerType">
+                  <option value="square">Squares</option>
+                  <option value="dot">Dots</option>
+                  <option value="extra-rounded">Rounded</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="size">Size (px)</label>
                 <input
-                  type="text"
-                  class="preset-name"
-                  id="presetName2"
-                  placeholder="Name…"
-                  aria-label="Preset 3 name"
+                  type="number"
+                  id="size"
+                  min="100"
+                  max="2000"
+                  value="600"
                 />
-                <div class="preset-actions">
-                  <button
-                    type="button"
-                    class="preset-load"
-                    id="presetLoad2"
-                    disabled
-                  >
-                    Load
-                  </button>
-                  <button type="button" class="preset-save" id="presetSave2">
-                    Save
-                  </button>
-                </div>
+              </div>
+              <div class="field">
+                <label for="margin">Margin</label>
+                <input
+                  type="number"
+                  id="margin"
+                  min="0"
+                  max="50"
+                  value="10"
+                />
               </div>
             </div>
+          </section>
+
+          <section class="panel section-presets">
+            <div class="section-heading-row">
+              <h2 class="section-heading">Presets</h2>
+              <span class="section-rule" aria-hidden="true"></span>
+            </div>
+            <div class="presets" id="presets"></div>
           </section>
         </div>
 
@@ -248,9 +216,12 @@
               <div class="spinner" id="spinner" hidden aria-hidden="true"></div>
               <div id="canvas"></div>
             </div>
-            <button type="button" class="download-qr" id="downloadQr">
-              Download QR code
-            </button>
+            <div class="preview-actions">
+              <button type="button" class="download-qr" id="downloadQr">
+                <span class="download-icon" aria-hidden="true"></span>
+                <span>Download QR code</span>
+              </button>
+            </div>
           </div>
         </section>
       </main>
