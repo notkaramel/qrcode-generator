@@ -97,11 +97,28 @@ function getCurrentState() {
   };
 }
 
+function toColorInputValue(value, fallback) {
+  if (!value || value === "transparent") return fallback;
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
+  if (/^#[0-9a-fA-F]{8}$/.test(value)) return value.slice(0, 7);
+  const rgba = String(value).match(
+    /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i,
+  );
+  if (rgba) {
+    return `#${[rgba[1], rgba[2], rgba[3]]
+      .map((x) => Number(x).toString(16).padStart(2, "0"))
+      .join("")}`;
+  }
+  return fallback;
+}
+
 function applyState(state) {
   if (state.data != null) dataInput.value = state.data;
-  if (state.dotColor) dotColor.value = state.dotColor;
+  if (state.dotColor) {
+    dotColor.value = toColorInputValue(state.dotColor, "#3d5a6c");
+  }
   if (state.bgColor && state.bgColor !== "transparent") {
-    bgColor.value = state.bgColor;
+    bgColor.value = toColorInputValue(state.bgColor, "#ffffff");
   }
   setBgTransparent(
     Boolean(state.bgTransparent || state.bgColor === "transparent"),
