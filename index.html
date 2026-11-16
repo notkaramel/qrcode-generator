@@ -64,15 +64,16 @@
   </head>
 
   <body>
-    <div class="app">
+    <div class="app" x-data="qrcodeApp">
       <header class="header">
         <h1 class="brand-title">make a qr code</h1>
         <button
           type="button"
           class="theme-toggle"
           id="themeToggle"
-          aria-label="Toggle dark mode"
+          :aria-label="themeLabel"
           title="Toggle theme"
+          @click="toggleTheme()"
         >
           <span class="icon-sprout" aria-hidden="true"></span>
           <span class="icon-moon-star" aria-hidden="true"></span>
@@ -92,6 +93,9 @@
                 id="data"
                 rows="3"
                 placeholder="Enter URL or text…"
+                x-model="data"
+                @input="onDataInput()"
+                @paste="onDataInput()"
               ></textarea>
             </div>
           </section>
@@ -106,6 +110,7 @@
                 id="randomizeQr"
                 aria-label="Randomize style"
                 title="Randomize style"
+                @click="randomizeStyle()"
               >
                 <span class="randomize-icon" aria-hidden="true"></span>
                 <span>Random style</span>
@@ -114,21 +119,42 @@
             <div class="options-grid">
               <div class="field">
                 <label for="dotColor">Dots color</label>
-                <input type="color" id="dotColor" value="#3d5a6c" />
+                <input
+                  type="color"
+                  id="dotColor"
+                  x-model="dotColor"
+                  @input="render()"
+                  @change="render()"
+                />
               </div>
               <div class="field">
                 <label for="bgColor">Background</label>
-                <div class="bg-row">
+                <div
+                  class="bg-row"
+                  :class="{ 'is-transparent': bgTransparent }"
+                >
                   <div class="bg-color-wrap" id="bgColorWrap">
-                    <input type="color" id="bgColor" value="#ffffff" />
+                    <input
+                      type="color"
+                      id="bgColor"
+                      x-model="bgColor"
+                      :disabled="bgTransparent"
+                      @input="render()"
+                      @change="render()"
+                    />
                   </div>
                   <button
                     type="button"
                     class="toggle-btn"
                     id="bgTransparent"
-                    aria-pressed="false"
+                    :class="{
+                      'is-active': bgTransparent,
+                      'is-expanded': bgTransparent,
+                    }"
+                    :aria-pressed="bgTransparent"
                     aria-label="Transparent background"
                     title="Transparent"
+                    @click="toggleBgTransparent()"
                   >
                     <span class="toggle-icon" aria-hidden="true"></span>
                     <span class="toggle-label">Transparent</span>
@@ -137,7 +163,11 @@
               </div>
               <div class="field">
                 <label for="dotType">Dot style</label>
-                <select id="dotType">
+                <select
+                  id="dotType"
+                  x-model="dotType"
+                  @change="render()"
+                >
                   <option value="square">Square</option>
                   <option value="rounded">Rounded</option>
                   <option value="dots">Dots</option>
@@ -148,7 +178,11 @@
               </div>
               <div class="field">
                 <label for="cornerType">Corner dot style</label>
-                <select id="cornerType">
+                <select
+                  id="cornerType"
+                  x-model="cornerType"
+                  @change="render()"
+                >
                   <option value="square">Squares</option>
                   <option value="dot">Dots</option>
                   <option value="extra-rounded">Rounded</option>
@@ -161,7 +195,9 @@
                   id="size"
                   min="100"
                   max="2000"
-                  value="600"
+                  x-model.number="size"
+                  @input="render()"
+                  @change="render()"
                 />
               </div>
               <div class="field">
@@ -171,21 +207,39 @@
                   id="margin"
                   min="0"
                   max="50"
-                  value="10"
+                  x-model.number="margin"
+                  @input="render()"
+                  @change="render()"
                 />
               </div>
               <div class="field field-logo">
                 <label>Logo</label>
-                <div class="upload-area" id="uploadArea">
-                  <input type="file" id="logo" accept="image/*" hidden />
-                  <span class="upload-text" id="uploadText"
-                    >Drop image or click to upload</span
-                  >
+                <div
+                  class="upload-area"
+                  id="uploadArea"
+                  :class="{ dragover: dragging }"
+                  @click="openLogoPicker($event)"
+                  @dragover.prevent="dragging = true"
+                  @dragleave="dragging = false"
+                  @drop.prevent="onDrop($event)"
+                >
+                  <input
+                    type="file"
+                    id="logo"
+                    x-ref="logoInput"
+                    accept="image/*"
+                    hidden
+                    @change="onLogoChange($event)"
+                    @click.stop
+                  />
+                  <span class="upload-text" id="uploadText" x-text="uploadLabel"></span>
                   <button
                     type="button"
                     class="clear-logo"
                     id="clearLogo"
                     hidden
+                    :hidden="!logoDataUrl"
+                    @click.stop="clearLogo()"
                   >
                     Remove logo
                   </button>
@@ -199,18 +253,65 @@
               <h2 class="section-heading">Presets</h2>
               <span class="section-rule" aria-hidden="true"></span>
             </div>
-            <div class="presets" id="presets"></div>
+            <div class="presets" id="presets">
+              <template x-for="(preset, index) in presets" :key="index">
+                <div class="preset-slot" :data-slot="index">
+                  <input
+                    type="text"
+                    class="preset-name"
+                    :id="'presetName' + index"
+                    placeholder="Name…"
+                    :aria-label="'Preset ' + (index + 1) + ' name'"
+                    x-model="preset.name"
+                  />
+                  <div class="preset-actions">
+                    <button
+                      type="button"
+                      class="preset-load"
+                      :id="'presetLoad' + index"
+                      :class="{ 'preset-btn-feedback': preset.feedback === 'Loaded!' }"
+                      :disabled="!preset.hasData || !!preset.feedback"
+                      @click="loadPreset(index)"
+                      x-text="preset.feedback === 'Loaded!' ? 'Loaded!' : 'Load'"
+                    ></button>
+                    <button
+                      type="button"
+                      class="preset-save"
+                      :id="'presetSave' + index"
+                      :class="{ 'preset-btn-feedback': preset.feedback === 'Saved!' }"
+                      :disabled="!!preset.feedback"
+                      @click="savePreset(index)"
+                      x-text="preset.feedback === 'Saved!' ? 'Saved!' : 'Save'"
+                    ></button>
+                  </div>
+                </div>
+              </template>
+            </div>
           </section>
         </div>
 
         <section class="panel preview">
           <div class="preview-inner">
-            <div class="canvas-wrap" id="canvasWrap">
-              <div class="spinner" id="spinner" hidden aria-hidden="true"></div>
-              <div id="canvas"></div>
+            <div
+              class="canvas-wrap"
+              id="canvasWrap"
+              :class="{ 'is-transparent': bgTransparent }"
+            >
+              <div
+                class="spinner"
+                id="spinner"
+                :hidden="!showingSpinner"
+                aria-hidden="true"
+              ></div>
+              <div id="canvas" x-ref="canvas"></div>
             </div>
             <div class="preview-actions">
-              <button type="button" class="download-qr" id="downloadQr">
+              <button
+                type="button"
+                class="download-qr"
+                id="downloadQr"
+                @click="download()"
+              >
                 <span class="download-icon" aria-hidden="true"></span>
                 <span>Download QR code</span>
               </button>
